@@ -8,19 +8,6 @@ LYRIC_WEBSITE_SEARCH = "https://www.lyricsmania.com/search.php?"
 def prettify_selection(selection):
     return selection.replace("/", "").replace(".html", "").replace("_", " ").title()
 
-def find_lyrics(song):
-    # Goes to the actual song
-    song_url = LYRIC_WEBSITE + song
-    res_song = requests.get(song_url)
-
-    soup_song = BeautifulSoup(res_song.text, "html.parser")
-    song_body = soup_song.find("div", attrs={"class": "lyrics-body"})
-
-    # Gets the content
-    content = song_body.text
-
-    return content
-
 def search_songs(song_name):
     params = {"k": song_name, "x": "0", "y": "0"}
 
@@ -40,15 +27,50 @@ def search_songs(song_name):
         if re.findall(r"/search/", selection["url"]):
             del selection
     
+    if selections:
     #Presents to the user | Asks for which song to choose
-    for index, selection in enumerate(selections):
-        print("{}) {}".format(index+1, selection["prettified"]))
+        for index, selection in enumerate(selections):
+            print("{}) {}".format(index+1, selection["prettified"]))
 
+        print("")
+
+        try:
+            index_chosen = int(input("Choose: "))
+            song_chosen = selections[index_chosen-1]
+        except:
+            print("\nSomething went wrong!")
+            return None
+
+        # returns: dict {"url", "prettified"}
+        return song_chosen
+
+    print("No songs found!")
+    return None
+
+def find_lyrics(song):
+    # Goes to the actual song
+    song_url = LYRIC_WEBSITE + song
+    res_song = requests.get(song_url)
+
+    soup_song = BeautifulSoup(res_song.text, "html.parser")
+    song_body = soup_song.find("div", attrs={"class": "lyrics-body"})
+
+    # Gets the content
+    lyrics = song_body.text
+
+    # returns: str
+    return lyrics
+
+
+if __name__ == "__main__":
     print("")
-
-    index_chosen = int(input("Choose: "))
-    song_chosen = selections[index_chosen-1]
-
-    return song_chosen
-
+    print("Lyric Finder - Luan")
+    print("")
+    song_chosen = input("Song: ")
+    print("")
+    data = search_songs(song_chosen)
+    if data:
+        print("")
+        print("Searching...")
+        print(find_lyrics(data["url"]))
 
